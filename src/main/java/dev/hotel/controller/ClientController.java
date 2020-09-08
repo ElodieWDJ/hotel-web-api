@@ -3,10 +3,15 @@ package dev.hotel.controller;
 import java.util.List;
 import java.util.UUID;
 
+import javax.validation.Valid;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.hotel.entite.Client;
 import dev.hotel.repository.ClientRepository;
+import dev.hotel.service.ClientService;
 
 @RestController
 public class ClientController {
@@ -37,7 +43,7 @@ public class ClientController {
 		return clientRepository.findAll(PageRequest.of(start, size)).getContent();
 	}
 
-	// GET/clients
+	// GET/clients/uuid
 	@RequestMapping(method = RequestMethod.GET, path = "clients/{uuid}")
 	public ResponseEntity<?> getClientUuid(@PathVariable UUID uuid) {
 
@@ -47,6 +53,19 @@ public class ClientController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Veuillez entrer un autre identifiant client");
 		}
 	}
-}
 
-// POST/clients
+	// POST/clients
+
+	@PostMapping
+	public ResponseEntity<?> creerClient(@RequestBody @Valid CreerClientRequestDto client,
+			BindingResult resultatValidation) {
+
+		if (resultatValidation.hasErrors()) {
+			return ResponseEntity.badRequest().body("Erreur");
+		}
+
+		return ResponseEntity
+				.ok(new CreerClientResponseDto(ClientService.creerNouveauClient(client.getNom(), client.getPrenoms())));
+	}
+
+}
